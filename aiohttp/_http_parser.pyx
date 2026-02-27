@@ -443,6 +443,19 @@ cdef class HttpParser:
             if enc.isascii() and enc.lower() in {"gzip", "deflate", "br", "zstd"}:
                 encoding = enc
 
+
+        # https://www.rfc-editor.org/rfc/rfc9112#section-3.2
+        # HTTP/1.1 requests MUST include a Host header.
+        if (
+            self._cparser.type == cparser.HTTP_REQUEST
+            and self._cparser.http_major == 1
+            and self._cparser.http_minor == 1
+            and self._cparser.method != cparser.HTTP_CONNECT
+            and "Host" not in headers
+        ):
+            raise BadHttpMessage(
+                "Missing `Host` header for HTTP/1.1 request"
+            )
         if self._cparser.type == cparser.HTTP_REQUEST:
             method = http_method_str(self._cparser.method)
             msg = _new_request_message(

@@ -1,0 +1,2 @@
+Reject HTTP/1.1 requests missing a ``Host`` header with a 400 Bad Request
+response, as required by :rfc:`9112#section-3.2` -- by :user:`indoor47`.

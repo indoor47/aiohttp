@@ -41,7 +41,7 @@ from .http_exceptions import (
     LineTooLong,
     TransferEncodingError,
 )
-from .http_writer import HttpVersion, HttpVersion10
+from .http_writer import HttpVersion, HttpVersion10, HttpVersion11
 from .streams import EMPTY_PAYLOAD, StreamReader
 from .typedefs import RawHeaders
 
@@ -626,6 +626,13 @@ class HttpRequestParser(HttpParser[RawRequestMessage]):
             else:  # HTTP 1.1 must ask to close.
                 close = False
 
+        # https://www.rfc-editor.org/rfc/rfc9112#section-3.2
+        # HTTP/1.1 requests MUST include a Host header.
+        if version_o == HttpVersion11 and method != "CONNECT":
+            if hdrs.HOST not in headers:
+                raise BadHttpMessage(
+                    "Missing `Host` header for HTTP/1.1 request"
+                )
         return RawRequestMessage(
             method,
             path,
